@@ -1,10 +1,38 @@
 const breadthFirstTraverse = (queue, array) => {
-  // fill code in here
+  while (queue.length) {
+    // Remove first element in array - dequeue
+    const node = queue.shift();
+
+    // Add value
+    array.push(node.value);
+
+    // Add child elements to queue - enqueue
+    node.left && queue.push(node.left);
+    node.right && queue.push(node.right);
+  }
+
+  return array;
+};
+
+const breadthFirstTraverseRecursive = (queue, array) => {
+  if (!queue.length) return array;
+  
+  // Remove first element in array - dequeue
+  const node = queue.shift();
+
+  // Add value
+  array.push(node.value);
+
+  // Add child elements to queue - enqueue
+  node.left && queue.push(node.left);
+  node.right && queue.push(node.right);
+
+  return breadthFirstTraverseRecursive(queue, array);
 };
 
 // unit tests
 // do not modify the below code
-describe.skip("breadth-first tree traversal", function () {
+describe("breadth-first tree traversal", function () {
   const answer = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K"];
 
   const tree = {
