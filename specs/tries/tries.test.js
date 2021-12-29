@@ -12,27 +12,95 @@
 const { CITY_NAMES } = require("./cities.js");
 const _ = require("lodash"); // needed for unit tests
 
+// A node could be a partial
 class Node {
-  // you don't have to use this data structure, this is just how I did it
-  // you'll almost definitely need more methods than this and a constructor
-  // and instance variables
+  constructor(string) {
+    this.children = [];
+    this.terminus = false; // Is the current string a valid word as is? E.g. - Sandy is a valid word but also could be more (children)
+    this.value = string[0];
+
+    if (string.length > 1) {
+      // Take every character after the first one
+      this.children.push(new Node(string.substring(1)));
+    } else {
+      this.terminus = true;
+    }
+  }
+
+  add(string) {
+    const value = string[0];
+    const next = string.substring(1);
+
+    for (let i = 0; i < this.children.length; i++) {
+      const child = this.children[i];
+
+      if (child.value === value) {
+        // Either more to add or the string is complete
+        if (next) {
+          child.add(next);
+        } else {
+          child.terminus = true;
+        }
+        return;
+      }
+    }
+
+    this.children.push(new Node(string));
+  }
+
+  _complete(search, built, suggestions) {
+    // Only return the user a max of three suggestions
+    // Also check if the search being made is for the right character
+    if (suggestions.length >= 3 || search && search[0] !== this.value) {
+      return suggestions;
+    }
+
+    if (this.terminus) {
+      // E.g. - built = bosto, value = n, complete suggestion = boston
+      suggestions.push(`${built}${this.value}`);
+    }
+
+    for (let i = 0; i < this.children.length; i++) {
+      const child = this.children[i];
+
+      // NOTE: This is called recursively on each item in the initial array if matching
+      child._complete(search.substring(1), `${built}${this.value}`, suggestions);
+    }
+
+    return suggestions;
+  }
+
   complete(string) {
-    return [];
+    let completions = [];
+    
+    for (let i = 0; i < this.children.length; i++) {
+      const child = this.children[i];
+
+      completions = completions.concat(child._complete(string, "", []));
+    }
+
+    return completions;
   }
 }
 
 const createTrie = (words) => {
-  // you do not have to do it this way; this is just how I did it
   const root = new Node("");
 
-  // more code should go here
+  // Iterate over each city in the array
+  for (let i = 0; i < words.length; i++) {
+    // Get the city
+    const word = words[i];
+
+    // Add to the root
+    root.add(word.toLowerCase());
+  }
 
   return root;
 };
 
 // unit tests
 // do not modify the below code
-describe.skip("tries", function () {
+describe("tries", function () {
   test("dataset of 10 – san", () => {
     const root = createTrie(CITY_NAMES.slice(0, 10));
     const completions = root.complete("san");
